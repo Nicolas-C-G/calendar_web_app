@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useHistory  } from "react-router-dom";
+import { Link } from "react-router-dom/cjs/react-router-dom.min";
 
 
 function Login() {
@@ -48,6 +49,8 @@ function Login() {
 
                 <button type="submit">Login</button>
             </form>
+
+            <p>Don't have an account? <Link to="/register">Register here</Link></p>
         </div>
     );
 }
