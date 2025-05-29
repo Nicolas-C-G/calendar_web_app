@@ -28,29 +28,44 @@ function Login() {
     };
 
     return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <label>Username</label>
-                <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                />
-                <br />
+        <div className="container mt-5">
+            <div className="row justify-content-center">
+                <div className="col-md-4">
+                <h2 className="text-center mb-4">Login</h2>
+                <form onSubmit={handleSubmit} className="border p-4 shadow rounded bg-white">
+                    <div className="mb-3">
+                    <label className="form-label">Username</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                    </div>
 
-                <label>Password</label>
-                <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                />
-                <br />
+                    <div className="mb-3">
+                    <label className="form-label">Password</label>
+                    <input
+                        type="password"
+                        className="form-control"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                    </div>
 
-                <button type="submit">Login</button>
-            </form>
-
-            <p>Don't have an account? <Link to="/register">Register here</Link></p>
+                    <div className="d-grid">
+                    <button type="submit" className="btn btn-primary">
+                        Login
+                    </button>
+                    </div>
+                </form>
+                <p className="text-center mt-3">
+                    Don’t have an account? <Link to="/register">Register here</Link>
+                </p>
+                </div>
+            </div>
         </div>
     );
 }

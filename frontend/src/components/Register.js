@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 
 function Register() {
     const [form, setForm] = useState({
@@ -40,48 +40,64 @@ function Register() {
     const passwordsMatch = form.password && form.re_password && form.password === form.re_password;
 
     return (
-        <div>
-            <h2>Register</h2>
-            <form onSubmit={handleSubmit}>
-                {["name", "last_name", "email", "company", "username"].map((field) => (
-                    <div key={field}>
-                        <label>{field.replace("_", " ")}</label>
-                        <input 
-                            type="text"
-                            name={field}
-                            value={form[field]}
-                            onChange={handleChange}
-                            required
+        <div className="container mt-5">
+            <div className="row justify-content-center">
+                <div className="col-md-6">
+                <h2 className="text-center mb-4">Create an Account</h2>
+                <form onSubmit={handleSubmit} className="border p-4 shadow rounded bg-white">
+                    {["name", "last_name", "email", "company", "username"].map((field) => (
+                    <div className="mb-3" key={field}>
+                        <label className="form-label text-capitalize">{field.replace("_", " ")}</label>
+                        <input
+                        type="text"
+                        name={field}
+                        className="form-control"
+                        value={form[field]}
+                        onChange={handleChange}
+                        required
                         />
                     </div>
-                ))}
-                <div>
-                    <label>Password</label>
+                    ))}
+
+                    <div className="mb-3">
+                    <label className="form-label">Password</label>
                     <input
                         type="password"
                         name="password"
+                        className="form-control"
                         value={form.password}
                         onChange={handleChange}
                         required
                     />
-                </div>
-                <div>
-                    <label>Re-type Password</label>
+                    </div>
+
+                    <div className="mb-3">
+                    <label className="form-label">Re-type Password</label>
                     <input
                         type="password"
                         name="re_password"
+                        className={`form-control ${form.re_password && !passwordsMatch ? "is-invalid" : ""}`}
                         value={form.re_password}
                         onChange={handleChange}
                         required
                     />
+                    {!passwordsMatch && form.re_password && (
+                        <div className="invalid-feedback">Passwords do not match</div>
+                    )}
+                    </div>
+
+                    <div className="d-grid">
+                    <button type="submit" className="btn btn-success" disabled={!passwordsMatch}>
+                        Create Account
+                    </button>
+                    </div>
+                </form>
+
+                <p className="text-center mt-3">
+                    Already have an account? <Link to="/">Login here</Link>
+                </p>
                 </div>
-                {!passwordsMatch && form.re_password && (
-                    <p style={{ color: "red" }}>Passwords do not match</p>
-                )}
-                <button type="submit" disabled={!passwordsMatch}>
-                    Create Account
-                </button>
-            </form>
+            </div>
         </div>
     );
 }
