@@ -27,43 +27,51 @@ function Login() {
         }
     };
 
+    const handleGoogleLogin = () => {
+        window.location.href = `${apiUrl}/auth/google`;
+    };
+
     return (
         <div className="container mt-5">
             <div className="row justify-content-center">
                 <div className="col-md-4">
-                <h2 className="text-center mb-4">Login</h2>
-                <form onSubmit={handleSubmit} className="border p-4 shadow rounded bg-white">
-                    <div className="mb-3">
-                    <label className="form-label">Username</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                    </div>
+                    <h2 className="text-center mb-4">Login</h2>
+                    <form onSubmit={handleSubmit} className="border p-4 shadow rounded bg-white">
+                        <div className="mb-3">
+                        <label className="form-label">Username</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                        </div>
 
-                    <div className="mb-3">
-                    <label className="form-label">Password</label>
-                    <input
-                        type="password"
-                        className="form-control"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    </div>
+                        <div className="mb-3">
+                        <label className="form-label">Password</label>
+                        <input
+                            type="password"
+                            className="form-control"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        </div>
 
-                    <div className="d-grid">
-                    <button type="submit" className="btn btn-primary">
-                        Login
+                        <div className="d-grid">
+                        <button type="submit" className="btn btn-primary">
+                            Login
+                        </button>
+                        </div>
+                    </form>
+                    <p className="text-center mt-3">
+                        Don’t have an account? <Link to="/register">Register here</Link>
+                    </p>
+                    <hr/>
+                    <button onClick={handleGoogleLogin} style={{ marginTop: "1em", backgroundColor: "#4285F4", color: "white", padding: "10px", border: "none", borderRadius: "4px" }}>
+                        Login with Google
                     </button>
-                    </div>
-                </form>
-                <p className="text-center mt-3">
-                    Don’t have an account? <Link to="/register">Register here</Link>
-                </p>
                 </div>
             </div>
         </div>

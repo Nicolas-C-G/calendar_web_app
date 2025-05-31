@@ -3,14 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from config import base, engine, ALLOWED_HEADERS, ALLOWED_METHODS, ALLOWED_ORIGINS
 from schemas.auth import LoginRequest
-from routers import auth
+from routers import auth, auth_google
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from limiter_config import limiter
+from starlette.middleware.sessions import SessionMiddleware
+import os
 
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# This line to support session-based login (e.g. Google OAuth)
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET_KEY", "super-secret-key"))
+
 
 # Create tables (only once at startup)
 base.metadata.create_all(bind=engine)
@@ -25,3 +31,4 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(auth_google.router)

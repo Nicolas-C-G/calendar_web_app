@@ -1,19 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from config import session_local
 from schemas.auth import LoginRequest, RegisterRequest
 from models.user import User
 from functions.utils import hash_password, verify_password, log_event
 from limiter_config import limiter
+from database import get_db
 
 router = APIRouter()
-
-def get_db():
-    db = session_local()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/login")
 @limiter.limit("3/minute")

@@ -6,6 +6,8 @@ import os
 # Load variables from .env
 load_dotenv()
 
+SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY")
+
 LOG_FOLDER_PATH = os.getenv("LOG_FOLDER_PATH")
 
 DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
