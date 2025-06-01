@@ -5,8 +5,12 @@ from models.user import User
 from functions.utils import hash_password, verify_password, log_event
 from limiter_config import limiter
 from database import get_db
+from itsdangerous import URLSafeSerializer
+from config import SESSION_SECRET_KEY
 
 router = APIRouter()
+
+serializer = URLSafeSerializer(SESSION_SECRET_KEY)
 
 @router.post("/login")
 @limiter.limit("3/minute")
@@ -25,7 +29,15 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     log_event("INFO", "Login", user.username+"-"+str(client_ip), "Login successful")
-    return {"message": f"Welcome, {user.username}!"}
+
+    token_data = {
+        "user_id": user.id,
+        "email": user.email,
+        "login": "normal"
+    }
+    session_token = serializer.dumps(token_data)
+
+    return {"token": session_token}
 
 @router.post("/register")
 def register(request: RegisterRequest, db: Session = Depends(get_db)):

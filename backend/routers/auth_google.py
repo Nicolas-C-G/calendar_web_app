@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse
 from authlib.integrations.starlette_client import OAuth
 from functions.utils import log_event
 from models.user import User
@@ -7,6 +7,7 @@ from database import get_db
 from sqlalchemy.orm import Session
 from itsdangerous import URLSafeSerializer, BadSignature
 from config import SESSION_SECRET_KEY
+from schemas.auth import TokenData
 import os
 
 router = APIRouter()
@@ -23,13 +24,20 @@ oauth.register(
     }
 )
 
-@router.get("/auth/verify-token")
-def verify_token(token: str):
-    serializer = URLSafeSerializer(SESSION_SECRET_KEY)
+@router.post("/auth/verify-token")
+async def verify_token(token_data: TokenData, db: Session = Depends(get_db)):
     try:
-        data = serializer.loads(token)
-        return {"valid": True, "data": data}
-    except BadSignature:
+        serializer = URLSafeSerializer(SESSION_SECRET_KEY)
+        user_data = serializer.loads(token_data.token)
+        user_id = user_data.get("user_id")
+        user_email = user_data.get("email")
+
+        user = db.query(User).filter_by(id=int(user_id), email=user_email).first
+        if not user:
+            return {"valid": False, "error": "Invalid or tampered token"}    
+
+        return {"valid": True, "user": user_data}
+    except Exception as e:
         return {"valid": False, "error": "Invalid or tampered token"}
 
 @router.get("/auth/google")
@@ -41,7 +49,6 @@ async def google_login(request: Request):
 async def google_callback(request: Request, db: Session = Depends(get_db)):
     token = await oauth.google.authorize_access_token(request)
 
-    # This fetches the user's profile directly from Google
     user_info_response = await oauth.google.get("https://www.googleapis.com/oauth2/v2/userinfo", token=token)
     user_info = user_info_response.json()
     email = user_info.get("email")
@@ -54,29 +61,45 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 
     if not user_data:
         new_user = User(
-            name      = user_info.get("given_name"),
-            last_name = user_info.get("family_name"),
-            username  = user_info.get("given_name")+"-"+user_info.get("family_name"),
-            password  = "",
-            email     = email,
-            company   = "",
-            status    = 2
+            name=user_info.get("given_name"),
+            last_name=user_info.get("family_name"),
+            username=user_info.get("given_name") + "-" + user_info.get("family_name"),
+            password="",
+            email=email,
+            company="",
+            status=2
         )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        user_data = new_user
+        log_event("REGISTER", "User registration", user_info, "The user was successfully created.")
 
-        try:
-            #create new user
-            db.add(new_user)
-            db.commit()
-            db.refresh(new_user)
-            user_data = new_user
-        except Exception as e:
-            log_event("ERROR", "User registration", user_info, "there were an error in the database server.")
-
-    # Generate a signed token
+    # Generate signed token
     serializer = URLSafeSerializer(SESSION_SECRET_KEY)
-    user_token = serializer.dumps({"user_id": user_data.id, "email": user_data.email, "login": "google"})
+    user_token = serializer.dumps({
+        "user_id": user_data.id,
+        "email": user_data.email,
+        "login": "google"
+    })
 
-     # Redirect to frontend with the token (for example: http://localhost:3000/dashboard)
-    redirect_url = f"http://localhost:3000/dashboard?token={user_token}"
-    return RedirectResponse(url=redirect_url)
-    
+    log_event("LOGIN", "User login", user_info, "User logged in.")
+
+    # Serve an HTML page that sends the token to React app via postMessage
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Authenticating...</title>
+    </head>
+    <body>
+      <script>
+        window.opener.postMessage({{ token: "{user_token}" }}, "http://localhost:3000");
+        window.close();
+      </script>
+      <p>Logging you in...</p>
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html_content)

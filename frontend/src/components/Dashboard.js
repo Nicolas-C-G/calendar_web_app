@@ -4,6 +4,7 @@ import { useHistory, Link } from "react-router-dom"
 
 function Dashboard() {
   const history = useHistory();
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -16,24 +17,30 @@ function Dashboard() {
     const storedToken = localStorage.getItem("userToken");
 
     if (!storedToken) {
-      history.push("/login");
+      history.push("");
       return;
     }
 
-    // Optional: Validate token with your backend
-    fetch(`http://localhost:8000/auth/verify-token?token=${storedToken}`)
+    fetch(`${apiBaseUrl}/auth/verify-token`, {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: storedToken })
+    })
       .then(res => res.json())
       .then(data => {
-        if (!data.valid) {
+        if (!data.valid){
           localStorage.removeItem("userToken");
-          history.push("/login");
+          history.push("");
         }
       })
       .catch(() => {
         localStorage.removeItem("userToken");
-        history.push("/login");
+        history.push("");
       });
-  }, [history]);
+  }, 
+  [history]);
 
   return (
     <div>

@@ -11,3 +11,6 @@ class RegisterRequest(BaseModel):
     password: str
     email: str
     company: str
+
+class TokenData(BaseModel):
+    token: str
