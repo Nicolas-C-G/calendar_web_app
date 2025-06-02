@@ -6,9 +6,9 @@ from models.user import User
 from database import get_db
 from sqlalchemy.orm import Session
 from itsdangerous import URLSafeSerializer, BadSignature
-from config import SESSION_SECRET_KEY
+from config import (SESSION_SECRET_KEY, ALLOWED_ORIGINS, GOOGLE_CLIENT_ID, 
+                    GOOGLE_CLIENT_SECRET, GOOGLE_SERVER_METADATA_URL, GOOGLE_OAUTH2_USERINFO)
 from schemas.auth import TokenData
-import os
 
 router = APIRouter()
 
@@ -16,9 +16,9 @@ router = APIRouter()
 oauth = OAuth()
 oauth.register(
     name='google',
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
+    server_metadata_url=GOOGLE_SERVER_METADATA_URL,
     client_kwargs={
         'scope': 'openid email profile'
     }
@@ -49,7 +49,7 @@ async def google_login(request: Request):
 async def google_callback(request: Request, db: Session = Depends(get_db)):
     token = await oauth.google.authorize_access_token(request)
 
-    user_info_response = await oauth.google.get("https://www.googleapis.com/oauth2/v2/userinfo", token=token)
+    user_info_response = await oauth.google.get(GOOGLE_OAUTH2_USERINFO, token=token)
     user_info = user_info_response.json()
     email = user_info.get("email")
 
@@ -94,7 +94,7 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     </head>
     <body>
       <script>
-        window.opener.postMessage({{ token: "{user_token}" }}, "http://localhost:3000");
+        window.opener.postMessage({{ token: "{user_token}" }}, "{ALLOWED_ORIGINS}");
         window.close();
       </script>
       <p>Logging you in...</p>
