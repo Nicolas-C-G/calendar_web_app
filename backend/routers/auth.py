@@ -5,7 +5,7 @@ from models.user import User
 from functions.utils import hash_password, verify_password, log_event
 from limiter_config import limiter
 from database import get_db
-from itsdangerous import URLSafeSerializer
+from itsdangerous import URLSafeSerializer, URLSafeTimedSerializer
 from config import SESSION_SECRET_KEY
 
 router = APIRouter()
@@ -35,6 +35,7 @@ def login(request: Request, login_data: LoginRequest, db: Session = Depends(get_
         "email": user.email,
         "login": "normal"
     }
+    serializer = URLSafeTimedSerializer(SESSION_SECRET_KEY)
     session_token = serializer.dumps(token_data)
 
     return {"token": session_token}

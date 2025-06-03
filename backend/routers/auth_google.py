@@ -5,9 +5,9 @@ from functions.utils import log_event
 from models.user import User
 from database import get_db
 from sqlalchemy.orm import Session
-from itsdangerous import URLSafeSerializer, BadSignature
-from config import (SESSION_SECRET_KEY, ALLOWED_ORIGINS, GOOGLE_CLIENT_ID, 
-                    GOOGLE_CLIENT_SECRET, GOOGLE_SERVER_METADATA_URL, GOOGLE_OAUTH2_USERINFO)
+from itsdangerous import SignatureExpired, URLSafeTimedSerializer
+from config import (SESSION_SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, 
+                    GOOGLE_SERVER_METADATA_URL, GOOGLE_OAUTH2_USERINFO, FRONTEND_BASE_URL)
 from schemas.auth import TokenData
 
 router = APIRouter()
@@ -27,8 +27,11 @@ oauth.register(
 @router.post("/auth/verify-token")
 async def verify_token(token_data: TokenData, db: Session = Depends(get_db)):
     try:
-        serializer = URLSafeSerializer(SESSION_SECRET_KEY)
-        user_data = serializer.loads(token_data.token)
+        #serializer = URLSafeSerializer(SESSION_SECRET_KEY)
+        serializer = URLSafeTimedSerializer(SESSION_SECRET_KEY)
+        #user_data = serializer.loads(token_data.token)
+        # Check max_age for expiration (in seconds)
+        user_data = serializer.loads(token_data.token, max_age=3600)
         user_id = user_data.get("user_id")
         user_email = user_data.get("email")
 
@@ -37,6 +40,9 @@ async def verify_token(token_data: TokenData, db: Session = Depends(get_db)):
             return {"valid": False, "error": "Invalid or tampered token"}    
 
         return {"valid": True, "user": user_data}
+    
+    except SignatureExpired:
+        return {"valid": False, "error": "Token expired"}
     except Exception as e:
         return {"valid": False, "error": "Invalid or tampered token"}
 
@@ -76,7 +82,8 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         log_event("REGISTER", "User registration", user_info, "The user was successfully created.")
 
     # Generate signed token
-    serializer = URLSafeSerializer(SESSION_SECRET_KEY)
+    #serializer = URLSafeSerializer(SESSION_SECRET_KEY)
+    serializer = URLSafeTimedSerializer(SESSION_SECRET_KEY)
     user_token = serializer.dumps({
         "user_id": user_data.id,
         "email": user_data.email,
@@ -94,7 +101,7 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     </head>
     <body>
       <script>
-        window.opener.postMessage({{ token: "{user_token}" }}, "{ALLOWED_ORIGINS}");
+        window.opener.postMessage({{ token: "{user_token}" }}, "{FRONTEND_BASE_URL}");
         window.close();
       </script>
       <p>Logging you in...</p>
