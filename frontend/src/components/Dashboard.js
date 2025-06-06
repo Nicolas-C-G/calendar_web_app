@@ -1,6 +1,9 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { useHistory, Link } from "react-router-dom"
+import { useHistory, Link } from "react-router-dom";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import "@fullcalendar/daygrid/index.js";
 
 function Dashboard() {
   const history = useHistory();
@@ -60,8 +63,17 @@ function Dashboard() {
       const data = await response.json();
 
       if (response.ok) {
-        setEvents(data);
-        setError("");
+        //setEvents(data);
+        //setError("");
+        const formattedEvents = data.map(event => ({
+            title: event.summary || "Untitled Event",
+            start: event.start?.dateTime || event.start?.date,
+            end: event.end?.dateTime || event.end?.date
+          }));
+
+          setEvents(formattedEvents);
+          setError("");
+
       } else {
         setError(data.detail || "Failed to fetch events");
         setEvents([]);
@@ -84,14 +96,14 @@ function Dashboard() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       {events.length > 0 && (
-        <ul className="list-group">
-          {events.map((event, idx) => (
-            <li key={idx} className="list-group-item">
-              {event.summary || "Untitled Event"} —{" "}
-              {event.start?.dateTime || event.start?.date || "No start time"}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-4">
+          <FullCalendar
+            plugins={[dayGridPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+            height="auto"
+          />
+        </div>
       )}
     </div>
   );
