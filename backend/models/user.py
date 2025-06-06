@@ -11,4 +11,5 @@ class User(base):
     password  = Column(String(255), nullable=False)
     email     = Column(String(255), nullable=False)
     company   = Column(String(255), nullable=False)
+    token     = Column(String(255), nullable=False)
     status    = Column(Integer, nullable=False)
