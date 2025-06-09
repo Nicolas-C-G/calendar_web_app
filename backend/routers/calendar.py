@@ -32,6 +32,8 @@ async def get_calendar_events(token_data: TokenData, db: Session = Depends(get_d
             token=google_tokens
         )
 
+        print(calendar_response.json().get("items", []))
+
         return calendar_response.json().get("items", [])
     
     except SignatureExpired:

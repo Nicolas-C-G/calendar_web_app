@@ -4,6 +4,9 @@ import { useHistory, Link } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import "@fullcalendar/daygrid/index.js";
+import { Modal, Button } from "react-bootstrap";
+import interactionPlugin from "@fullcalendar/interaction";
+
 
 function Dashboard() {
   const history = useHistory();
@@ -11,6 +14,9 @@ function Dashboard() {
 
   const [events, setEvents] = useState([]);
   const [error, setError] = useState("");
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -63,13 +69,12 @@ function Dashboard() {
       const data = await response.json();
 
       if (response.ok) {
-        //setEvents(data);
-        //setError("");
         const formattedEvents = data.map(event => ({
-            title: event.summary || "Untitled Event",
+            title: event.summary || "Untiteled",
             start: event.start?.dateTime || event.start?.date,
-            end: event.end?.dateTime || event.end?.date
+            fullEvent: event 
           }));
+
 
           setEvents(formattedEvents);
           setError("");
@@ -84,6 +89,19 @@ function Dashboard() {
     }
   };
 
+  const handleDateClick = (info) => {
+    const selectedDate = info.dateStr
+    const selected = events.filter((event) => {
+      const eventDate = event.start?.substring(0,10);
+      return eventDate === selectedDate;
+    });
+    
+    setSelectedDate(selectedDate);
+    setFilteredEvents(selected);
+    console.log(filteredEvents);
+    setShowModal(true);
+  };
+
   return (
     <div className="container mt-5">
       <h2>Welcome to your Dashboard</h2>
@@ -95,14 +113,40 @@ function Dashboard() {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {events.length > 0 && (
-        <div className="mt-4">
-          <FullCalendar
-            plugins={[dayGridPlugin]}
-            initialView="dayGridMonth"
-            events={events}
-            height="auto"
-          />
+      <FullCalendar
+        plugins={[dayGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        events={events}
+        dateClick={(info) => handleDateClick(info)}
+      />
+
+      {/* Step 5: Modal goes here */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" role="dialog">
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Events on {selectedDate}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {filteredEvents.length === 0 ? (
+                  <p>No events for this day.</p>
+                ) : (
+                  <ul>
+                    {filteredEvents.map((event, idx) => (
+                      <li key={idx}>{event.fullEvent?.summary || event.title}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
