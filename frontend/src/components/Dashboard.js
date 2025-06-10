@@ -146,7 +146,7 @@ function Dashboard() {
                           (ep) => ep.entryPointType === "video"
                         )?.uri;
                       
-                      const formattedTime = event.start.split("T")[1].split(":").slice(0, 2).join(":") + "pm";  
+                      const formattedTime = event.start.includes("T") ? event.start.split("T")[1].split(":").slice(0, 2).join(":") + "pm" : "All day";  
                       const utc = event.start.slice(-6);                    
                       return (
                         <li key={idx}>
