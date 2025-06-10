@@ -139,9 +139,29 @@ function Dashboard() {
                   <p>No events for this day.</p>
                 ) : (
                   <ul>
-                    {filteredEvents.map((event, idx) => (
-                      <li key={idx}>{event.fullEvent?.summary || event.title}</li>
-                    ))}
+                    {filteredEvents.map((event, idx) => {
+                      const meetLink =
+                        event.fullEvent?.hangoutLink ||
+                        event.fullEvent?.conferenceData?.entryPoints?.find(
+                          (ep) => ep.entryPointType === "video"
+                        )?.uri;
+                      
+                      const formattedTime = event.start.split("T")[1].split(":").slice(0, 2).join(":") + "pm";  
+                      const utc = event.start.slice(-6);                    
+                      return (
+                        <li key={idx}>
+                          <strong>{formattedTime} UTC: {utc} - {event.fullEvent?.summary || event.title}</strong>
+                          {meetLink && (
+                            <>
+                              <br />
+                              <a href={meetLink} target="_blank" rel="noopener noreferrer">
+                                Join Google Meet
+                              </a>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
