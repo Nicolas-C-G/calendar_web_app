@@ -1,0 +1,1 @@
+This folder have to contains all the test for checking every end-point in the code

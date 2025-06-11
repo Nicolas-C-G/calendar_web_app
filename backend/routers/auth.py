@@ -7,6 +7,7 @@ from limiter_config import limiter
 from database import get_db
 from itsdangerous import URLSafeSerializer, URLSafeTimedSerializer
 from config import SESSION_SECRET_KEY
+import json
 
 router = APIRouter()
 
@@ -49,6 +50,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     data = request.dict()
     data["status"] = 1
     data["password"] = hash_password(data["password"])
+    data["token"] = json.dumps({"access_token": "", "refresh_token": ""})
 
     try:
         user = User(**data)
