@@ -1,0 +1,9 @@
+authlib==1.6.0
+fastapi==0.115.12
+itsdangerous==2.2.0
+passlib==1.7.4
+pydantic==2.11.5
+python-dotenv==1.1.0
+slowapi==0.1.9
+SQLAlchemy==2.0.41
+starlette==0.47.0
